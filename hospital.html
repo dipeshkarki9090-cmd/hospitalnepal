@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediCore - Patient Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0ea5e9; /* Medical Blue */
+            --secondary: #64748b;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: #e0f2fe;
+            color: var(--primary);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--text-main); }
+        .stat-label { font-size: 0.875rem; color: var(--text-muted); margin-top: 4px; }
+
+        /* TABLE STYLES */
+        .table-container {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            padding: 16px 24px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        tr:hover { background-color: #f8fafc; cursor: pointer; }
+
+        /* BADGES */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .status-stable { background: #dcfce7; color: #166534; }
+        .status-critical { background: #fee2e2; color: #991b1b; }
+        .status-observation { background: #fef3c7; color: #92400e; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            width: 600px;
+            max-width: 90%;
+            position: relative;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .detail-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .detail-item span {
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">
+            <span style="font-size: 2rem;">&#10010;</span> MediCore
+        </div>
+        <div class="nav-item active">Dashboard</div>
+        <div class="nav-item">Patients List</div>
+        <div class="nav-item">Doctors Schedule</div>
+        <div class="nav-item">Pharmacy</div>
+        <div class="nav-item">Settings</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <div>
+                <h1 style="margin:0;">Patient Overview</h1>
+                <p style="margin:4px 0 0 0; color: var(--text-muted);">Welcome back, Dr. House</p>
+            </div>
+            <button class="btn-primary">+ Admit New Patient</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">124</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Available Beds</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--danger);">5</div>
+                <div class="stat-label">Critical Status</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--success);">28</div>
+                <div class="stat-label">Discharged Today</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="patientTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient Name</th>
+                        <th>Bed No.</th>
+                        <th>Diagnosis</th>
+                        <th>Assigned Doctor</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="patientModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 style="margin:0;" id="modalName">Patient Name</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>Bed Number</label>
+                    <span id="modalBed">101</span>
+                </div>
+                <div class="detail-item">
+                    <label>Primary Caretaker</label>
+                    <span id="modalCaretaker">Name</span>
+                </div>
+                <div class="detail-item">
+                    <label>Assigned Doctor</label>
+                    <span id="modalDoctor">Dr. Smith</span>
+                </div>
+                <div class="detail-item">
+                    <label>Contact</label>
+                    <span id="modalContact">+1 234 567 890</span>
+                </div>
+                <div class="detail-item" style="grid-column: span 2;">
+                    <label>Diagnosis</label>
+                    <span id="modalDisease" style="color: var(--primary);">Disease Name</span>
+                </div>
+                <div class="detail-item" style="grid-column: span 2;">
+                    <label>Prescribed Medication</label>
+                    <div id="modalMeds" style="background: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 5px;">
+                        List of meds
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 24px; display: flex; gap: 10px;">
+                <button class="btn-primary" style="background: var(--text-main);">Discharge</button>
+                <button class="btn-primary">Update Vitals</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // RANDOM DATA GENERATOR
+        const patients = [
+            { id: "P-1024", name: "Sarah Jenkins", bed: "A-101", disease: "Acute Bronchitis", doctor: "Dr. Gregory House", caretaker: "Michael Jenkins (Husband)", meds: "Amoxicillin 500mg, Cough Syrup", status: "Stable", type: "stable" },
+            { id: "P-1025", name: "Marcus Thorne", bed: "ICU-04", disease: "Myocardial Infarction", doctor: "Dr. Lisa Cuddy", caretaker: "Elena Thorne (Wife)", meds: "Aspirin, Beta-blockers, Statins", status: "Critical", type: "critical" },
+            { id: "P-1026", name: "Emily Chen", bed: "B-205", disease: "Type 2 Diabetes", doctor: "Dr. James Wilson", caretaker: "David Chen (Father)", meds: "Metformin, Insulin Glargine", status: "Observation", type: "observation" },
+            { id: "P-1027", name: "Robert Baratheon", bed: "A-103", disease: "Liver Cirrhosis", doctor: "Dr. Gregory House", caretaker: "Cersei L. (Wife)", meds: "Diuretics, Vitamin K", status: "Stable", type: "stable" },
+            { id: "P-1028", name: "Arya Stark", bed: "C-301", disease: "Fractured Tibia", doctor: "Dr. Meredith Grey", caretaker: "Sansa Stark (Sister)", meds: "Ibuprofen 400mg, Calcium Supplements", status: "Stable", type: "stable" },
+            { id: "P-1029", name: "Walter White", bed: "Onco-12", disease: "Lung Carcinoma", doctor: "Dr. James Wilson", caretaker: "Skyler White (Wife)", meds: "Chemotherapy Agents, Antiemetics", status: "Critical", type: "critical" },
+            { id: "P-1030", name: "Bruce Wayne", bed: "Ortho-01", disease: "Spinal Fracture", doctor: "Dr. Stephen Strange", caretaker: "Alfred P. (Butler)", meds: "Hydrocodone, Muscle Relaxers", status: "Observation", type: "observation" }
+        ];
+
+        // RENDER TABLE
+        const tableBody = document.querySelector("#patientTable tbody");
+
+        patients.forEach(patient => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td style="color: var(--primary); font-weight: 500;">${patient.id}</td>
+                <td style="font-weight: 600;">${patient.name}</td>
+                <td>${patient.bed}</td>
+                <td>${patient.disease}</td>
+                <td>${patient.doctor}</td>
+                <td><span class="badge status-${patient.type}">${patient.status}</span></td>
+            `;
+            // Add click event to open modal
+            row.addEventListener("click", () => openModal(patient));
+            tableBody.appendChild(row);
+        });
+
+        // MODAL FUNCTIONS
+        const modal = document.getElementById("patientModal");
+
+        function openModal(patient) {
+            document.getElementById("modalName").innerText = patient.name;
+            document.getElementById("modalBed").innerText = patient.bed;
+            document.getElementById("modalDisease").innerText = patient.disease;
+            document.getElementById("modalDoctor").innerText = patient.doctor;
+            document.getElementById("modalCaretaker").innerText = patient.caretaker;
+            document.getElementById("modalMeds").innerText = patient.meds;
+            
+            modal.style.display = "flex";
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
